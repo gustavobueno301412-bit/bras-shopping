@@ -151,7 +151,7 @@
         <button class="cat-btn" onclick="filtrar('outros', this)">📦 OUTROS</button>
     </div>
 
-    <div id="vitrine" class="vitrine">Carregando Lojas...</div>
+    <div id="vitrine" class="vitrine">🛍️ Carregando Lojas...</div>
 </div>
 
 <div class="btn-anuncie" onclick="abrirCadastro()">ANUNCIE<br>AQUI</div>
@@ -211,7 +211,7 @@
             <option value="variedades">Outros/Variedades</option>
         </select>
        
-        <label>Horário de Funcionamento:</label>
+        <label>Dias e Horários de Funcionamento:</label>
         <input type="text" id="cadHorario" placeholder="Ex: 08h às 17h" class="busca-input">
 
         <label>Termos de Uso e Responsabilidade:</label>
@@ -377,9 +377,18 @@
 
         if(confirm("Você está na sua LOJA agora?")) {
             navigator.geolocation.getCurrentPosition(p => {
-                let txt = `*NOVO CADASTRO BRÁS SHOPPING*%0A`;
-                txt += `*Loja:* ${campos.nome}%0A*Zap:* ${campos.zap}%0A*Cat:* ${campos.cat}%0A*GPS:* ${p.coords.latitude},${p.coords.longitude}`;
-                window.open(`https://wa.me/5512992448264?text=${txt}`);
+               // Substitua esse trecho dentro da função finalizarCadastro:
+
+let txt = `*NOVO CADASTRO BRÁS SHOPPING*%0A%0A`;
+txt += `*Loja:* ${campos.nome}%0A`;
+txt += `*WhatsApp:* ${campos.zap}%0A`;
+txt += `*Segmento:* ${campos.cat}%0A`;
+txt += `*Produtos:* ${campos.desc}%0A`; // ESSA É A LINHA DA DESCRIÇÃO
+txt += `*Horário:* ${campos.horario}%0A`; // ESSA É A LINHA DO HORÁRIO
+txt += `*Localização (GPS):* https://www.google.com/maps?q=${p.coords.latitude},${p.coords.longitude}%0A%0A`;
+txt += `*Data:* ${new Date().toLocaleString('pt-BR')}`;
+
+window.open(`https://wa.me/5512992448264?text=${txt}`);
                 fecharModal('modalCadastro');
             }, () => alert("Ative o GPS!"));
         }
