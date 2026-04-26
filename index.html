@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brás Shopping - Bueno Software</title>
+    <style>
+        :root {
+            --azul-bras: #003366;
+            --laranja-bras: #ff8c00;
+            --cinza-fundo: #f4f7f6;
+            --verde-zap: #25D366;
+            --azul-maps: #4285F4;
+            --branco: #ffffff;
+            --texto: #333333;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            background-color: var(--cinza-fundo);
+            color: var(--texto);
+            overflow-x: hidden;
+        }
+       
+        header {
+            background: var(--azul-bras);
+            padding: 15px 10px;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        .titulo-app { color: var(--branco); font-size: 1.5rem; font-weight: 800; margin: 0; letter-spacing: 1px; }
+        .subtitulo-app { color: var(--laranja-bras); font-size: 0.8rem; font-weight: bold; text-transform: uppercase; margin-top: 2px; }
+
+        .container { padding: 15px; max-width: 900px; margin: auto; }
+
+        .banner-container {
+            width: 100%;
+            height: 190px;
+            border-radius: 15px;
+            overflow: hidden;
+            margin-bottom: 20px;
+            background: #ddd;
+            position: relative;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        .banner-wrapper { display: flex; width: 100%; height: 100%; transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1); }
+        .banner-img { min-width: 100%; height: 100%; object-fit: cover; cursor: pointer; }
+
+        .busca-input {
+            width: 100%;
+            padding: 16px 20px;
+            border-radius: 30px;
+            border: 2px solid #eee;
+            margin-bottom: 15px;
+            box-sizing: border-box;
+            outline: none;
+            font-size: 1rem;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        .busca-input:focus { border-color: var(--laranja-bras); }
+
+        .categorias { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 20px; }
+        .cat-btn {
+            background: var(--branco);
+            padding: 12px 2px;
+            border-radius: 12px;
+            font-size: 0.65rem;
+            font-weight: bold;
+            border: 1px solid #ddd;
+            cursor: pointer;
+            text-align: center;
+            transition: 0.2s;
+        }
+        .cat-btn.active { background: var(--laranja-bras) !important; color: var(--branco) !important; border-color: var(--laranja-bras); }
+
+        .vitrine { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 15px; }
+        .produto-card {
+            background: var(--branco);
+            border-radius: 20px;
+            padding: 12px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            border: 1px solid #efefef;
+            display: flex;
+            flex-direction: column;
+            transition: 0.3s;
+            cursor: pointer;
+        }
+        .img-loja {
+            width: 100%;
+            height: 150px;
+            object-fit: contain;
+            border-radius: 12px;
+            background: #fdfdfd;
+            margin-bottom: 10px;
+        }
+        .nome-loja { font-size: 0.95rem; font-weight: bold; color: var(--azul-bras); margin-bottom: 5px; }
+        .desc-card { font-size: 0.75rem; color: #666; margin-bottom: 5px; min-height: 30px; line-height: 1.2; }
+        .horario-card { font-size: 0.7rem; color: #d32f2f; font-weight: bold; margin-bottom: 8px; }
+        .tag-segmento { font-size: 0.6rem; color: var(--laranja-bras); font-weight: 800; text-transform: uppercase; background: #fff3e0; padding: 4px; border-radius: 6px; margin-bottom: 8px; align-self: center; }
+       
+        .btn-detalhes { background: var(--laranja-bras); color: white; font-size: 0.75rem; font-weight: bold; padding: 10px; border-radius: 12px; text-transform: uppercase; cursor: pointer; }
+
+        .btn-anuncie {
+            position: fixed; bottom: 25px; right: 20px;
+            background: var(--laranja-bras); color: var(--branco);
+            width: 70px; height: 70px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 10px; font-weight: bold; text-align: center;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.3); z-index: 2000;
+            border: 2px solid white; cursor: pointer;
+        }
+
+        .modal { display:none; position: fixed; z-index: 10000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); align-items: center; justify-content: center; backdrop-filter: blur(4px); }
+        .modal-content { background: var(--branco); width: 90%; max-width: 420px; padding: 25px; border-radius: 25px; position: relative; max-height: 85vh; overflow-y: auto; }
+       
+        .info-linha { text-align: left; margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 5px; }
+        .info-label { font-size: 0.65rem; color: #999; font-weight: bold; text-transform: uppercase; }
+        .info-valor { font-size: 0.9rem; color: #333; font-weight: 600; }
+
+        .aviso-gps { background: #fff3e0; color: #e65100; padding: 12px; border-radius: 12px; border: 1px solid #ffb74d; font-size: 0.8rem; font-weight: bold; margin-bottom: 15px; text-align: center; }
+        .termos-box { background: #f5f5f5; padding: 15px; border: 1px solid #ddd; border-radius: 12px; font-size: 0.75rem; text-align: left; height: 150px; overflow-y: scroll; margin: 10px 0; line-height: 1.5; color: #444; }
+       
+        label { display: block; text-align: left; font-size: 0.8rem; font-weight: bold; margin: 10px 0 5px 5px; color: var(--azul-bras); }
+        .btn-acao { display: flex; align-items: center; justify-content: center; gap: 10px; padding: 16px; border-radius: 15px; text-decoration: none; color: white; font-weight: bold; margin-top: 10px; }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="titulo-app">BRÁS SHOPPING 🛍️</div>
+    <div class="subtitulo-app">Bueno Software</div>
+</header>
+
+<div class="container">
+    <div class="banner-container"><div class="banner-wrapper" id="bannerApp"></div></div>
+    <input type="text" id="inputBusca" class="busca-input" placeholder="🔍 Buscar loja ou produto..." onkeyup="executarBusca()">
+   
+    <div class="categorias">
+        <button class="cat-btn active" onclick="filtrar('todos', this)">✨ TODOS</button>
+        <button class="cat-btn" onclick="filtrar('feminino', this)">👚 FEMININO</button>
+        <button class="cat-btn" onclick="filtrar('masculino', this)">👕 MASCULINO</button>
+        <button class="cat-btn" onclick="filtrar('infantil', this)">🧸 INFANTIL</button>
+        <button class="cat-btn" onclick="filtrar('food', this)">🍝 ALIMENTOS</button>
+        <button class="cat-btn" onclick="filtrar('calcados', this)">👟 CALÇADOS</button>
+        <button class="cat-btn" onclick="filtrar('eletronicos', this)">🔌 ELÉTRICOS</button>
+        <button class="cat-btn" onclick="filtrar('outros', this)">📦 OUTROS</button>
+    </div>
+
+    <div id="vitrine" class="vitrine">Carregando Lojas...</div>
+</div>
+
+<div class="btn-anuncie" onclick="abrirCadastro()">ANUNCIE<br>AQUI</div>
+
+<div id="modalLoja" class="modal">
+    <div class="modal-content">
+        <span onclick="fecharModal('modalLoja')" style="position:absolute; top:15px; right:20px; cursor:pointer; font-size:30px;">×</span>
+        <img id="modalImg" src="" style="width: 100%; height: 200px; object-fit: contain; margin-bottom:15px; border-radius:15px;">
+       
+        <div class="info-linha">
+            <div class="info-label">Loja</div>
+            <div id="modalNome" style="font-size: 1.2rem; font-weight: bold; color: var(--azul-bras);"></div>
+        </div>
+        <div class="info-linha">
+            <div class="info-label">Descrição</div>
+            <div id="modalDesc" class="info-valor"></div>
+        </div>
+        <div style="display: flex; gap: 10px;">
+            <div class="info-linha" style="flex: 1;">
+                <div class="info-label">Categoria</div>
+                <div id="modalCat" class="info-valor" style="color: var(--laranja-bras);"></div>
+            </div>
+            <div class="info-linha" style="flex: 1;">
+                <div class="info-label">Horário</div>
+                <div id="modalHorario" class="info-valor" style="color: #d32f2f;"></div>
+            </div>
+        </div>
+
+        <a id="btnZap" href="#" target="_blank" class="btn-acao" style="background: var(--verde-zap);">🟢 WHATSAPP DA LOJA</a>
+        <a id="btnMaps" href="#" target="_blank" class="btn-acao" style="background: var(--azul-maps);">📍 VER NO MAPA (GPS)</a>
+    </div>
+</div>
+
+<div id="modalCadastro" class="modal">
+    <div class="modal-content">
+        <div class="aviso-gps">⚠️ O cadastro deve ser feito de dentro da loja para marcar o GPS corretamente!</div>
+        <h3 style="text-align: center; color: var(--laranja-bras);">Cadastre sua Loja</h3>
+       
+        <label>Nome Comercial:</label>
+        <input type="text" id="cadNome" class="busca-input">
+       
+        <label>WhatsApp:</label>
+        <input type="tel" id="cadZap" placeholder="(11) 99999-9999" class="busca-input">
+       
+        <label>Descrição dos Produtos:</label>
+        <input type="text" id="cadDescInput" placeholder="O que você vende?" class="busca-input">
+       
+        <label>Categoria:</label>
+        <select id="cadCat" class="busca-input" style="background: white;">
+            <option value="">Selecione...</option>
+            <option value="feminino">Feminino</option>
+            <option value="masculino">Masculino</option>
+            <option value="infantil">Infantil</option>
+            <option value="jeans">Jeans</option>
+            <option value="calcados">Calçados</option>
+            <option value="eletronicos">Eletrônicos</option>
+            <option value="variedades">Outros/Variedades</option>
+        </select>
+       
+        <label>Horário de Funcionamento:</label>
+        <input type="text" id="cadHorario" placeholder="Ex: 08h às 17h" class="busca-input">
+
+        <label>Termos de Uso e Responsabilidade:</label>
+        <div class="termos-box">
+            <b>1. OBJETO:</b> O Brás Shopping é uma plataforma de divulgação (vitrine digital) e não realiza vendas diretas nem intermedia pagamentos.<br><br>
+            <b>2. RESPONSABILIDADE:</b> O lojista é o único responsável pela veracidade das informações, preços, qualidade dos produtos e entrega.<br><br>
+            <b>3. LOCALIZAÇÃO:</b> Ao clicar em enviar, você autoriza a captura da sua coordenada GPS atual para que os clientes encontrem sua loja física.<br><br>
+            <b>4. IMAGEM:</b> Você autoriza o uso da marca/foto enviada para fins de divulgação dentro desta plataforma.<br><br>
+            <b>5. DA NATUREZA DA PLATAFORMA:</b> O Brás Shopping opera estritamente como uma VITRINE DIGITAL e guia de busca. A plataforma funciona como um recurso tecnológico de aproximação, não sendo parte da cadeia de consumo, venda, pagamento ou entrega dos produtos.<br><br>
+            <b>6. DA AUSÊNCIA DE VÍNCULO:</b> Declaramos a inexistência de qualquer vínculo empregatício, societário ou de responsabilidade solidária com os estabelecimentos cadastrados. O Brás Shopping não é proprietário, representante ou garantidor das lojas anunciadas.<br><br>
+            <b>7. DA LEGALIDADE E ORIGEM DOS PRODUTOS:</b> O anunciante declara, sob as penas da lei, que exerce atividade econômica legalizada e que seus produtos possuem procedência comprovada. A plataforma repudia o comércio de mercadorias ilícitas, contrafeitas (falsificadas) ou sem nota fiscal. É dever do lojista cumprir todas as normas fiscais, sanitárias e de consumo vigentes.<br><br>
+            <b>8. DA FISCALIZAÇÃO E DA RESPONSABILIDADE:</b> O lojista é o único e exclusivo responsável por eventuais fiscalizações, autuações ou problemas de qualidade e entrega. O Brás Shopping não monitora estoques e não garante a idoneidade das transações realizadas fora do ambiente do aplicativo.<br><br>  
+            <b>9. DO GPS E PRIVACIDADE:</b> O lojista autoriza a coleta da coordenada geográfica (GPS) no ato do cadastro para fins de geolocalização do estabelecimento físico, isentando a plataforma de mau uso desse dado por terceiros.<br><br>  
+            <b>10. VALORES (PIX):</b> <br>
+            6.1. PLANO ESSENCIAL: R$ 50,00 mensais.<br>
+            6.2. PLANO DESTAQUE (BANNER): R$ 70,00 mensais.<br>
+            6.3. ADESÃO: Pagamento pré-pago para ativação.
+        </div>
+       
+        <div style="margin: 15px 0; display: flex; align-items: center; gap: 8px;">
+            <input type="checkbox" id="aceitoTermos" style="width:18px; height:18px;">
+            <label for="aceitoTermos" style="margin:0; font-size: 0.75rem;">Li e aceito os termos e planos.</label>
+        </div>
+
+        <button onclick="finalizarCadastro()" style="width:100%; background:var(--laranja-bras); color:white; border:none; padding:18px; border-radius:30px; font-weight:bold; cursor: pointer;">🚀 ENVIAR COM LOCALIZAÇÃO GPS</button>
+        <button onclick="fecharModal('modalCadastro')" style="background:none; border:none; width:100%; margin-top:10px; color:gray; cursor:pointer;">Cancelar</button>
+    </div>
+</div>
+
+<script>
+    const URL_PLANILHA = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR8CAesOiz0YRJynkGb0Oif1KRZtGNQpjRqlHXJmEFdbD8ou_9PhjFUkokgYsgFxlxBsIjX3-UToQ2j/pub?output=csv';
+   
+    let lojas = [];
+    let bannerIndex = 0;
+
+    function limpar(t) { return t ? t.toString().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim() : ""; }
+
+    async function carregarDados() {
+        try {
+            const r = await fetch(URL_PLANILHA);
+            const csv = await r.text();
+            const linhas = csv.split('\n').slice(1);
+           
+            lojas = linhas.map(linha => {
+                const c = linha.split(',');
+                return {
+                    nome: c[0]?.trim(), segmento: c[1]?.trim() || "", desc: c[2]?.trim(),
+                    zap: c[3]?.trim(), horario: c[4]?.trim(), lat: c[5]?.trim(),
+                    log: c[6]?.trim(), foto: c[7]?.trim(), banner: c[8]?.trim()
+                };
+            }).filter(l => l.nome && l.nome.length > 1);
+
+            mostrarLojas();
+            iniciarBanner();
+        } catch (e) { document.getElementById('vitrine').innerText = "Erro de conexão."; }
+    }
+
+    function mostrarLojas(filtro = 'todos') {
+        let lista = [...lojas];
+        if (limpar(filtro) !== 'todos') lista = lista.filter(l => limpar(l.segmento) === limpar(filtro));
+        lista.sort(() => Math.random() - 0.5);
+
+        let html = '';
+        lista.forEach(l => {
+            html += `
+                <div class="produto-card" onclick="abrirLoja('${l.nome.replace(/'/g, "\\'")}')">
+                    <img src="${l.foto || 'https://via.placeholder.com/200'}" class="img-loja" loading="lazy">
+                    <div class="nome-loja">${l.nome}</div>
+                    <div class="desc-card">${l.desc ? l.desc.substring(0, 40) + '...' : ''}</div>
+                    <div class="horario-card">🕒 ${l.horario || 'Consulte'}</div>
+                    <span class="tag-segmento">${l.segmento}</span>
+                    <div class="btn-detalhes">VER DETALHES</div>
+                </div>`;
+        });
+        document.getElementById('vitrine').innerHTML = html;
+    }
+
+    function iniciarBanner() {
+        const wrapper = document.getElementById('bannerApp');
+        const banners = lojas.filter(l => l.banner && l.banner.length > 10).sort(() => Math.random() - 0.5);
+        if(!banners.length) return;
+
+        wrapper.innerHTML = banners.map(l => `<img src="${l.banner}" class="banner-img" onclick="abrirLoja('${l.nome.replace(/'/g, "\\'")}')">`).join('');
+        setInterval(() => {
+            bannerIndex = (bannerIndex + 1) % banners.length;
+            wrapper.style.transform = `translateX(-${bannerIndex * 100}%)`;
+        }, 5000);
+    }
+
+    function abrirLoja(nome) {
+        const l = lojas.find(i => i.nome === nome);
+        if(!l) return;
+        document.getElementById('modalNome').innerText = l.nome;
+        document.getElementById('modalDesc').innerText = l.desc;
+        document.getElementById('modalCat').innerText = l.segmento.toUpperCase();
+        document.getElementById('modalHorario').innerText = l.horario || 'Não informado';
+        document.getElementById('modalImg').src = l.foto || l.banner;
+        document.getElementById('btnZap').href = `https://wa.me/${l.zap.replace(/\D/g,'')}?text=Vim pelo Brás Shopping!`;
+        document.getElementById('btnMaps').href = `https://www.google.com/maps?q=${l.lat},${l.log}`;
+        document.getElementById('modalLoja').style.display = 'flex';
+    }
+
+  function executarBusca() {
+    const termo = limpar(document.getElementById('inputBusca').value);
+    if (termo.length < 2) {
+        mostrarLojas(); // Se apagar a busca, volta a mostrar todas
+        return;
+    }
+
+    const filtradas = lojas.filter(l => {
+        const nome = limpar(l.nome);
+        const segmento = limpar(l.segmento);
+        const descricao = limpar(l.desc);
+
+        // O segredo é o .includes() em todas as frentes:
+        return nome.includes(termo) ||
+               segmento.includes(termo) ||
+               descricao.includes(termo);
+    });
+
+    mostrarLojasFiltradas(filtradas);
+}
+
+ 
+
+    function mostrarLojasFiltradas(lista) {
+        let html = '';
+        lista.forEach(l => {
+            html += `
+                <div class="produto-card" onclick="abrirLoja('${l.nome.replace(/'/g, "\\'")}')">
+                    <img src="${l.foto}" class="img-loja">
+                    <div class="nome-loja">${l.nome}</div>
+                    <div class="desc-card">${l.desc ? l.desc.substring(0, 40) + '...' : ''}</div>
+                    <div class="horario-card">🕒 ${l.horario || 'Consulte'}</div>
+                    <span class="tag-segmento">${l.segmento}</span>
+                    <div class="btn-detalhes">VER DETALHES</div>
+                </div>`;
+        });
+        document.getElementById('vitrine').innerHTML = html || '<p>Nada encontrado.</p>';
+    }
+
+    function filtrar(cat, btn) {
+        document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        mostrarLojas(cat);
+    }
+
+    function abrirCadastro() { document.getElementById('modalCadastro').style.display = 'flex'; }
+    function fecharModal(id) { document.getElementById(id).style.display = 'none'; }
+
+    function finalizarCadastro() {
+        const campos = {
+            nome: document.getElementById('cadNome').value,
+            zap: document.getElementById('cadZap').value,
+            desc: document.getElementById('cadDescInput').value,
+            cat: document.getElementById('cadCat').value,
+            horario: document.getElementById('cadHorario').value,
+            aceito: document.getElementById('aceitoTermos').checked
+        };
+
+        if(!campos.nome || !campos.zap || !campos.cat) return alert("Preencha os dados básicos!");
+        if(!campos.aceito) return alert("Aceite os termos para continuar.");
+
+        if(confirm("Você está na sua LOJA agora?")) {
+            navigator.geolocation.getCurrentPosition(p => {
+                let txt = `*NOVO CADASTRO BRÁS SHOPPING*%0A`;
+                txt += `*Loja:* ${campos.nome}%0A*Zap:* ${campos.zap}%0A*Cat:* ${campos.cat}%0A*GPS:* ${p.coords.latitude},${p.coords.longitude}`;
+                window.open(`https://wa.me/5512992448264?text=${txt}`);
+                fecharModal('modalCadastro');
+            }, () => alert("Ative o GPS!"));
+        }
+    }
+
+    window.onload = carregarDados;
+</script>
+</body>
+</html>
+
+ 
