@@ -117,17 +117,50 @@
 
         /* NOVO: BOTÃO DE RETORNO ESTILO GUSTAVO */
         /* CSS MANTIDO E ADICIONADO CORES DE ESTADO */
-        .btn-retorno {
-            position: fixed; bottom: 25px; left: 20px;
-            background: #25D366; /* Começa Verde */
-            color: var(--branco);
-            width: 70px; height: 70px; border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 9px; font-weight: bold; text-align: center;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.3); z-index: 2000;
-            border: 2px solid white; cursor: pointer;
-            transition: background 0.3s ease; /* Transição suave de cor */
-        }
+        /* Estilo base do botão flutuante */
+.btn-retorno {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    border: 3px solid white;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    z-index: 9999;
+    font-weight: bold;
+    font-size: 10px;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    line-height: 1.2;
+    transition: transform 0.2s, background-color 0.3s;
+}
+
+.btn-retorno:active {
+    transform: scale(0.9);
+}
+
+/* CORES DOS ESTADOS */
+.btn-azul {
+    background-color: #007bff !important;
+    color: white !important;
+}
+
+.btn-amarelo {
+    background-color: #ffc107 !important;
+    color: black !important;
+}
+
+.btn-vermelho {
+    background-color: #dc3545 !important;
+    color: white !important;
+}
+
+ 
+
         /* Cores dos estados do Gustavo */
         .btn-verde { background: #25D366 !important; }
         .btn-amarelo { background: #FFD700 !important; color: #333 !important; }
@@ -433,47 +466,46 @@
     // NOVA FUNÇÃO: GERENCIAR O GPS DE RETORNO DO GUSTAVO
    // FUNÇÃO ATUALIZADA: SISTEMA DE ESTADOS DO GUSTAVO (VERDE -> AMARELO -> VERMELHO)
     function gerenciarRetorno() {
-        const btn = document.querySelector('.btn-retorno');
-        const ponto = localStorage.getItem('ponto_retorno');
+    const btn = document.querySelector('.btn-retorno');
+    const ponto = localStorage.getItem('ponto_retorno');
+    const estado = localStorage.getItem('estado_botao'); // Nova memória para a cor
 
-        // ESTADO 1: Não tem nada gravado (VERDE) -> Vai gravar agora
-        if (!ponto) {
-            if (confirm("Deseja gravar este local como seu PONTO DE PARTIDA (Ônibus/Carro)?")) {
-                navigator.geolocation.getCurrentPosition(p => {
-                    const dados = { lat: p.coords.latitude, log: p.coords.longitude };
-                    localStorage.setItem('ponto_retorno', JSON.stringify(dados));
-                   
-                    // Muda para Amarelo (Gravado)
-                    btn.classList.remove('btn-verde');
-                    btn.classList.add('btn-amarelo');
-                    btn.innerHTML = "PONTO<br>SALVO!";
-                   
-                    alert("Localização salva! Agora você pode ir às compras.");
-                }, () => alert("Erro: Ative o GPS para gravar!"));
-            }
-        }
-        // ESTADO 2: Já está Amarelo (Salvo) -> Vai liberar para Retorno (Vermelho)
-        else if (btn.classList.contains('btn-amarelo')) {
-            if (confirm("Deseja ativar a rota de RETORNO agora?")) {
-                btn.classList.remove('btn-amarelo');
-                btn.classList.add('btn-vermelho');
-                btn.innerHTML = "IR PARA<br>RETORNO";
+    // ESTADO: INATIVO / INICIAR (AZUL)
+    if (!ponto || estado === 'azul') {
+        if (confirm("Deseja salvar sua localização atual como PONTO DE PARTIDA?")) {
+            navigator.geolocation.getCurrentPosition(p => {
+                const dados = { lat: p.coords.latitude, log: p.coords.longitude };
+                localStorage.setItem('ponto_retorno', JSON.stringify(dados));
+                localStorage.setItem('estado_botao', 'amarelo'); // Salva que agora é amarelo
                
-                const p = JSON.parse(ponto);
-                window.open(`https://www.google.com/maps/dir/?api=1&destination=${p.lat},${p.log}`);
-            }
-        }
-        // ESTADO 3: Já está Vermelho (Retorno) -> Vai ZERAR e voltar ao Verde
-        else {
-            if (confirm("Você já chegou ao ponto de partida? Deseja LIMPAR o GPS e iniciar uma nova viagem?")) {
-                localStorage.removeItem('ponto_retorno');
-                btn.classList.remove('btn-vermelho');
-                btn.classList.add('btn-verde');
-                btn.innerHTML = "GPS DE<br>RETORNO";
-                alert("GPS Zerado! Pronto para uma nova gravação.");
-            }
+                btn.className = 'btn-retorno btn-amarelo';
+                btn.innerHTML = "PONTO<br>SALVO";
+            }, () => alert("Ative o GPS para salvar!"));
         }
     }
+    // ESTADO: PONTO SALVO (AMARELO)
+    else if (estado === 'amarelo') {
+        if (confirm("Deseja abrir o Google Maps para voltar ao ponto inicial?")) {
+            const p = JSON.parse(ponto);
+            localStorage.setItem('estado_botao', 'vermelho'); // Muda para vermelho após usar
+            btn.className = 'btn-retorno btn-vermelho';
+            btn.innerHTML = "LIMPAR<br>GPS";
+            window.open(`https://www.google.com/maps/search/?api=1&query=${p.lat},${p.log}`);
+        }
+    }
+    // ESTADO: VOLTOU / LIMPAR (VERMELHO)
+    else if (estado === 'vermelho') {
+        if (confirm("Deseja zerar o GPS e iniciar uma nova jornada?")) {
+            localStorage.removeItem('ponto_retorno');
+            localStorage.setItem('estado_botao', 'azul'); // Volta ao início
+            btn.className = 'btn-retorno btn-azul';
+            btn.innerHTML = "INICIAR<br>COMPRAS";
+        }
+    }
+}
+
+ 
+
 
     function abrirCadastro() { document.getElementById('modalCadastro').style.display = 'flex'; }
     function fecharModal(id) { document.getElementById(id).style.display = 'none'; }
@@ -511,22 +543,26 @@
 
     // APAGUE a linha antiga e cole este bloco no lugar:
     window.onload = function() {
-        carregarDados(); // Aqui ele continua carregando as lojas da planilha normal
-       
-        const btn = document.querySelector('.btn-retorno');
-        const ponto = localStorage.getItem('ponto_retorno');
-       
-        // Verifica se já existe um GPS salvo para o botão já nascer na cor certa
-        if (ponto) {
-            btn.classList.add('btn-amarelo');
-            btn.innerHTML = "PONTO<br>SALVO!";
-        } else {
-            btn.classList.add('btn-verde');
-            btn.innerHTML = "GPS DE<br>RETORNO";
-        }
-    };
-// O script termina aqui
-</script>
+    carregarDados(); // Sua função original da planilha
+   
+    const btn = document.querySelector('.btn-retorno');
+    const estado = localStorage.getItem('estado_botao');
+
+    // Se não tem nada na memória, ele começa Azul (Inativo)
+    if (!estado || estado === 'azul') {
+        btn.className = 'btn-retorno btn-azul';
+        btn.innerHTML = "INICIAR<br>COMPRAS";
+    } else if (estado === 'amarelo') {
+        btn.className = 'btn-retorno btn-amarelo';
+        btn.innerHTML = "PONTO<br>SALVO";
+    } else if (estado === 'vermelho') {
+        btn.className = 'btn-retorno btn-vermelho';
+        btn.innerHTML = "LIMPAR<br>GPS";
+    }
+};
+
+ 
+
 </script>
 </body>
 </html>
