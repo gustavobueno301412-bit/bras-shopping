@@ -137,6 +137,11 @@
     cursor: pointer;
     line-height: 1.2;
     transition: transform 0.2s, background-color 0.3s;
+    /* AS LINHAS QUE RESOLVEM O SEU PROBLEMA: */
+    user-select: none;           /* Impede selecionar o texto */
+    -webkit-user-select: none;   /* Para Chrome e Safari no celular */
+    -webkit-touch-callout: none; /* Impede abrir o menu de "copiar" no iPhone/Android */
+    touch-action: manipulation;  /* Melhora o toque e evita o zoom acidental */
 }
 
 .btn-retorno:active {
@@ -185,7 +190,7 @@
 
 <header>
     <div class="titulo-app">BRÁS SHOPPING 🛍️</div>
-    <div class="subtitulo-app">Bueno Software</div>
+    <div class="subtitulo-app">Bueno Software 💡</div>
 </header>
 
 <div class="container">
@@ -208,7 +213,7 @@
 </div>
 
 <div class="btn-retorno" onclick="gerenciarRetorno()">GPS DE<br>RETORNO</div>
-<div class="btn-anuncie" onclick="abrirCadastro()">ANUNCIE<br>AQUI</div>
+<div class="btn-anuncie" onclick="abrirCadastro()">ANUNCIE<br>AQUI 🚀</div>
 
 <div id="modalLoja" class="modal">
     <div class="modal-content">
@@ -479,7 +484,7 @@
                 localStorage.setItem('estado_botao', 'amarelo'); // Salva que agora é amarelo
                
                 btn.className = 'btn-retorno btn-amarelo';
-                btn.innerHTML = "PONTO<br>SALVO";
+                btn.innerHTML = "PONTO<br>SALVO 📍";
             }, () => alert("Ative o GPS para salvar!"));
         }
     }
@@ -489,7 +494,7 @@
             const p = JSON.parse(ponto);
             localStorage.setItem('estado_botao', 'vermelho'); // Muda para vermelho após usar
             btn.className = 'btn-retorno btn-vermelho';
-            btn.innerHTML = "LIMPAR<br>GPS";
+            btn.innerHTML = "LIMPAR<br>GPS 🗑️";
             window.open(`https://www.google.com/maps/search/?api=1&query=${p.lat},${p.log}`);
         }
     }
@@ -551,7 +556,7 @@
     // Se não tem nada na memória, ele começa Azul (Inativo)
     if (!estado || estado === 'azul') {
         btn.className = 'btn-retorno btn-azul';
-        btn.innerHTML = "INICIAR<br>COMPRAS";
+        btn.innerHTML = "SALVAR<br>VEÍCULO 🚘";
     } else if (estado === 'amarelo') {
         btn.className = 'btn-retorno btn-amarelo';
         btn.innerHTML = "PONTO<br>SALVO";
