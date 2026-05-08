@@ -115,6 +115,17 @@
             border: 2px solid white; cursor: pointer;
         }
 
+        /* NOVO BOTÃO VEÍCULO (Adicionado à Esquerda) */
+        .btn-veiculo {
+            position: fixed; bottom: 25px; left: 20px;
+            background: var(--azul-bras); color: var(--branco);
+            width: 70px; height: 70px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 10px; font-weight: bold; text-align: center;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.3); z-index: 2000;
+            border: 2px solid white; cursor: pointer;
+        }
+
         .modal { display:none; position: fixed; z-index: 10000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); align-items: center; justify-content: center; backdrop-filter: blur(4px); }
         .modal-content { background: var(--branco); width: 90%; max-width: 420px; padding: 25px; border-radius: 25px; position: relative; max-height: 85vh; overflow-y: auto; }
        
@@ -153,6 +164,8 @@
 
     <div id="vitrine" class="vitrine">🛍️ Carregando Lojas...</div>
 </div>
+
+<div id="btnV" class="btn-veiculo" onclick="gerenciarVeiculo()">SALVAR<br>VEÍCULO 🚗</div>
 
 <div class="btn-anuncie" onclick="abrirCadastro()">ANUNCIE<br>AQUI</div>
 
@@ -223,8 +236,8 @@
             <b>5. DA NATUREZA DA PLATAFORMA:</b> O Brás Shopping opera estritamente como uma VITRINE DIGITAL e guia de busca. A plataforma funciona como um recurso tecnológico de aproximação, não sendo parte da cadeia de consumo, venda, pagamento ou entrega dos produtos.<br><br>
             <b>6. DA AUSÊNCIA DE VÍNCULO:</b> Declaramos a inexistência de qualquer vínculo empregatício, societário ou de responsabilidade solidária com os estabelecimentos cadastrados. O Brás Shopping não é proprietário, representante ou garantidor das lojas anunciadas.<br><br>
             <b>7. DA LEGALIDADE E ORIGEM DOS PRODUTOS:</b> O anunciante declara, sob as penas da lei, que exerce atividade econômica legalizada e que seus produtos possuem procedência comprovada. A plataforma repudia o comércio de mercadorias ilícitas, contrafeitas (falsificadas) ou sem nota fiscal. É dever do lojista cumprir todas as normas fiscais, sanitárias e de consumo vigentes.<br><br>
-            <b>8. DA FISCALIZAÇÃO E DA RESPONSABILIDADE:</b> O lojista é o único e exclusivo responsável por eventuais fiscalizações, autuações ou problemas de qualidade e entrega. O Brás Shopping não monitora estoques e não garante a idoneidade das transações realizadas fora do ambiente do aplicativo.<br><br>  
-            <b>9. DO GPS E PRIVACIDADE:</b> O lojista autoriza a coleta da coordenada geográfica (GPS) no ato do cadastro para fins de geolocalização do estabelecimento físico, isentando a plataforma de mau uso desse dado por terceiros.<br><br>  
+            <b>8. DA FISCALIZAÇÃO E DA RESPONSABILIDADE:</b> O lojista é o único e exclusivo responsável por eventuais fiscalizações, autuações ou problemas de qualidade e entrega. O Brás Shopping não monitora estoques e não garante a idoneidade das transações realizadas fora do ambiente do aplicativo.<br><br> 
+            <b>9. DO GPS E PRIVACIDADE:</b> O lojista autoriza a coleta da coordenada geográfica (GPS) no ato do cadastro para fins de geolocalização do estabelecimento físico, isentando a plataforma de mau uso desse dado por terceiros.<br><br> 
             <b>10. VALORES (PIX):</b> <br>
             6.1. PLANO ESSENCIAL: R$ 50,00 mensais.<br>
             6.2. PLANO DESTAQUE (BANNER): R$ 70,00 mensais.<br>
@@ -250,44 +263,83 @@
     function limpar(t) { return t ? t.toString().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim() : ""; }
 
     async function carregarDados() {
-        try {
-            const r = await fetch(URL_PLANILHA);
-            const csv = await r.text();
-            const linhas = csv.split('\n').slice(1);
-           
-            lojas = linhas.map(linha => {
-                const c = linha.split(',');
-                return {
-                    nome: c[0]?.trim(), segmento: c[1]?.trim() || "", desc: c[2]?.trim(),
-                    zap: c[3]?.trim(), horario: c[4]?.trim(), lat: c[5]?.trim(),
-                    log: c[6]?.trim(), foto: c[7]?.trim(), banner: c[8]?.trim()
-                };
-            }).filter(l => l.nome && l.nome.length > 1);
+    // 1. Primeiro atualiza o botão do veículo (que já instalamos)
+    atualizarBotaoVeiculo();
 
+    // 2. Tenta pegar os dados salvos no celular (Cache)
+    const cacheSalvo = localStorage.getItem('bras_shopping_cache');
+    const ultimaAtualizacao = localStorage.getItem('bras_cache_hora');
+    const agora = new Date().getTime();
+   
+    // Se tiver cache e ele tiver menos de 30 minutos, usa o que tá no celular
+    if (cacheSalvo && ultimaAtualizacao && (agora - ultimaAtualizacao < 30 * 60 * 1000)) {
+        lojas = JSON.parse(cacheSalvo);
+        mostrarLojas();
+        iniciarBanner();
+        console.log("Usando dados do cache (Economizando Firebase)");
+        return;
+    }
+
+    // 3. Se não tem cache ou é velho, busca na planilha
+    try {
+        const r = await fetch(URL_PLANILHA);
+        const csv = await r.text();
+        const linhas = csv.split('\n').slice(1);
+       
+        lojas = linhas.map(linha => {
+            const c = linha.split(',');
+            return {
+                nome: c[0]?.trim(), segmento: c[1]?.trim() || "", desc: c[2]?.trim(),
+                zap: c[3]?.trim(), horario: c[4]?.trim(), lat: c[5]?.trim(),
+                log: c[6]?.trim(), foto: c[7]?.trim(), banner: c[8]?.trim()
+            };
+        }).filter(l => l.nome && l.nome.length > 1);
+
+        // 4. Salva no celular para a próxima vez
+        localStorage.setItem('bras_shopping_cache', JSON.stringify(lojas));
+        localStorage.setItem('bras_cache_hora', agora.toString());
+
+        mostrarLojas();
+        iniciarBanner();
+    } catch (e) {
+        if(cacheSalvo) { // Se der erro de internet, tenta usar o cache mesmo velho
+            lojas = JSON.parse(cacheSalvo);
             mostrarLojas();
-            iniciarBanner();
-        } catch (e) { document.getElementById('vitrine').innerText = "Erro de conexão."; }
+        } else {
+            document.getElementById('vitrine').innerText = "Erro de conexão.";
+        }
     }
+}
 
-    function mostrarLojas(filtro = 'todos') {
-        let lista = [...lojas];
-        if (limpar(filtro) !== 'todos') lista = lista.filter(l => limpar(l.segmento) === limpar(filtro));
-        lista.sort(() => Math.random() - 0.5);
+ 
 
-        let html = '';
-        lista.forEach(l => {
-            html += `
-                <div class="produto-card" onclick="abrirLoja('${l.nome.replace(/'/g, "\\'")}')">
-                    <img src="${l.foto || 'https://via.placeholder.com/200'}" class="img-loja" loading="lazy">
-                    <div class="nome-loja">${l.nome}</div>
-                    <div class="desc-card">${l.desc ? l.desc.substring(0, 40) + '...' : ''}</div>
-                    <div class="horario-card">🕒 ${l.horario || 'Consulte'}</div>
-                    <span class="tag-segmento">${l.segmento}</span>
-                    <div class="btn-detalhes">VER DETALHES</div>
-                </div>`;
-        });
-        document.getElementById('vitrine').innerHTML = html;
-    }
+
+   function mostrarLojas(filtro = 'todos') {
+    let lista = [...lojas];
+    if (limpar(filtro) !== 'todos') lista = lista.filter(l => limpar(l.segmento) === limpar(filtro));
+   
+    lista.sort(() => Math.random() - 0.5);
+
+    // Mostra apenas as primeiras 40 lojas para o app carregar instantâneo
+    const iniciais = lista.slice(0, 40);
+
+    let html = '';
+    iniciais.forEach(l => {
+        html += `
+            <div class="produto-card" onclick="abrirLoja('${l.nome.replace(/'/g, "\\'")}')">
+                <img src="${l.foto || 'https://via.placeholder.com/200'}" class="img-loja" loading="lazy">
+                <div class="nome-loja">${l.nome}</div>
+                <div class="desc-card">${l.desc ? l.desc.substring(0, 40) + '...' : ''}</div>
+                <div class="horario-card">🕒 ${l.horario || 'Consulte'}</div>
+                <span class="tag-segmento">${l.segmento}</span>
+                <div class="btn-detalhes">VER DETALHES</div>
+            </div>`;
+    });
+    document.getElementById('vitrine').innerHTML = html;
+}
+
+ 
+
 
     function iniciarBanner() {
         const wrapper = document.getElementById('bannerApp');
@@ -317,7 +369,7 @@
   function executarBusca() {
     const termo = limpar(document.getElementById('inputBusca').value);
     if (termo.length < 2) {
-        mostrarLojas(); // Se apagar a busca, volta a mostrar todas
+        mostrarLojas();
         return;
     }
 
@@ -326,7 +378,6 @@
         const segmento = limpar(l.segmento);
         const descricao = limpar(l.desc);
 
-        // O segredo é o .includes() em todas as frentes:
         return nome.includes(termo) ||
                segmento.includes(termo) ||
                descricao.includes(termo);
@@ -334,8 +385,6 @@
 
     mostrarLojasFiltradas(filtradas);
 }
-
- 
 
     function mostrarLojasFiltradas(lista) {
         let html = '';
@@ -377,14 +426,12 @@
 
         if(confirm("Você está na sua LOJA agora?")) {
             navigator.geolocation.getCurrentPosition(p => {
-               // Substitua esse trecho dentro da função finalizarCadastro:
-
 let txt = `*NOVO CADASTRO BRÁS SHOPPING*%0A%0A`;
 txt += `*Loja:* ${campos.nome}%0A`;
 txt += `*WhatsApp:* ${campos.zap}%0A`;
 txt += `*Segmento:* ${campos.cat}%0A`;
-txt += `*Produtos:* ${campos.desc}%0A`; // ESSA É A LINHA DA DESCRIÇÃO
-txt += `*Horário:* ${campos.horario}%0A`; // ESSA É A LINHA DO HORÁRIO
+txt += `*Produtos:* ${campos.desc}%0A`;
+txt += `*Horário:* ${campos.horario}%0A`;
 txt += `*Localização (GPS):* https://www.google.com/maps?q=${p.coords.latitude},${p.coords.longitude}%0A%0A`;
 txt += `*Data:* ${new Date().toLocaleString('pt-BR')}`;
 
@@ -394,7 +441,49 @@ window.open(`https://wa.me/5512992448264?text=${txt}`);
         }
     }
 
+    /* --- LÓGICA DO VEÍCULO (NOVA) --- */
+    function gerenciarVeiculo() {
+        const salvo = localStorage.getItem('bras_local_veiculo');
+       
+        if (!salvo) {
+            // Estado 1: Salvar
+            if(confirm("Deseja salvar sua localização atual como o local do seu VEÍCULO?")) {
+                navigator.geolocation.getCurrentPosition(p => {
+                    const dados = { lat: p.coords.latitude, lng: p.coords.longitude };
+                    localStorage.setItem('bras_local_veiculo', JSON.stringify(dados));
+                    alert("Localização salva! Agora você pode andar pelo Brás e clicar no botão para voltar.");
+                    atualizarBotaoVeiculo();
+                }, () => alert("Para salvar, você precisa ativar o GPS!"));
+            }
+        } else {
+            // Estado 2: Retornar ou Limpar
+            const pos = JSON.parse(salvo);
+            if(confirm("Você já tem um local salvo. Deseja TRAÇAR ROTA de volta para o veículo?\n\n(Clique em CANCELAR se quiser apenas apagar o local antigo)")) {
+                window.open(`https://www.google.com/maps/dir/?api=1&destination=${pos.lat},${pos.lng}&travelmode=walking`, '_blank');
+            } else {
+                if(confirm("Deseja APAGAR o local salvo para registrar um novo?")) {
+                    localStorage.removeItem('bras_local_veiculo');
+                    atualizarBotaoVeiculo();
+                }
+            }
+        }
+    }
+
+    function atualizarBotaoVeiculo() {
+        const btn = document.getElementById('btnV');
+        const salvo = localStorage.getItem('bras_local_veiculo');
+        if (salvo) {
+            btn.innerHTML = "RETORNAR<br>VEÍCULO 📍";
+            btn.style.background = "#25D366"; // Muda para verde quando tem algo salvo
+        } else {
+            btn.innerHTML = "SALVAR<br>VEÍCULO 🚗";
+            btn.style.background = "var(--azul-bras)";
+        }
+    }
+
     window.onload = carregarDados;
 </script>
 </body>
 </html>
+
+ 
